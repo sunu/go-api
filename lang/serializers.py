@@ -22,16 +22,16 @@ logger = logging.getLogger(__name__)
 class StringSerializer(serializers.ModelSerializer):
     class Meta:
         model = String
-        fields = '__all__'
+        fields = "__all__"
 
 
 class LanguageBulkActionSerializer(serializers.Serializer):
-    SET = 'set'
-    DELETE = 'delete'
+    SET = "set"
+    DELETE = "delete"
 
     ACTION_CHOICES = (
-        (SET, 'Set'),
-        (DELETE, 'Delete'),
+        (SET, "Set"),
+        (DELETE, "Delete"),
     )
 
     action = serializers.ChoiceField(choices=ACTION_CHOICES)
@@ -39,7 +39,6 @@ class LanguageBulkActionSerializer(serializers.Serializer):
     value = serializers.CharField(required=False)
     hash = serializers.CharField(max_length=32, required=False)
     page_name = serializers.CharField(required=False)
-    language = serializers.ChoiceField(choices=settings.LANGUAGES)
 
 
 class LanguageBulkActionsSerializer(serializers.Serializer):
@@ -55,6 +54,7 @@ class TranslatedModelSerializerMixin(serializers.ModelSerializer):
     Not feasible:
     - Provide fields for multiple langauge if multiple languages is specified. eg: field_en, field_es
     """
+
     @classmethod
     def _get_included_excluded_fields(cls, model, selected_fields=None):
         requested_lang = django_get_language()
@@ -83,7 +83,7 @@ class TranslatedModelSerializerMixin(serializers.ModelSerializer):
         field_list = []
         for field in get_translatable_fields_for_model(model) or []:
             if field in orig_searchfields:
-                field_list.extend([f'{field}_en', f'{field}_es', f'{field}_fr', f'{field}_ar'])
+                field_list.extend([f"{field}_en", f"{field}_es", f"{field}_fr", f"{field}_ar"])
         return field_list
 
     @classmethod
@@ -93,11 +93,11 @@ class TranslatedModelSerializerMixin(serializers.ModelSerializer):
         """
         cleared = False
         for field, current_lang_field in included_fields_lang.items():
-            old_value = getattr(instance, current_lang_field) or ''
+            old_value = getattr(instance, current_lang_field) or ""
             if type(validated_data) == dict:
-                new_value = validated_data.get(current_lang_field) or validated_data.get(field) or ''
+                new_value = validated_data.get(current_lang_field) or validated_data.get(field) or ""
             else:  # NOTE: Assuming it's model instance
-                new_value = getattr(validated_data, current_lang_field, getattr(validated_data, field, None)) or ''
+                new_value = getattr(validated_data, current_lang_field, getattr(validated_data, field, None)) or ""
             if old_value == new_value:
                 continue
             for lang, _ in settings.LANGUAGES:
@@ -116,14 +116,10 @@ class TranslatedModelSerializerMixin(serializers.ModelSerializer):
         if not settings.TESTING:
             # NOTE: Skip triggering translation
             return
-            transaction.on_commit(
-                lambda: translate_model_fields.delay(get_model_name(type(instance)), instance.pk)
-            )
+            transaction.on_commit(lambda: translate_model_fields.delay(get_model_name(type(instance)), instance.pk))
         else:
             # NOTE: For test case run the process directly (Translator will mock the generated text)
-            transaction.on_commit(
-                lambda: translate_model_fields(get_model_name(type(instance)), instance.pk)
-            )
+            transaction.on_commit(lambda: translate_model_fields(get_model_name(type(instance)), instance.pk))
 
     @classmethod
     def trigger_field_translation_in_bulk(cls, model, instances):
@@ -131,14 +127,10 @@ class TranslatedModelSerializerMixin(serializers.ModelSerializer):
         if not settings.TESTING:
             # NOTE: Skip triggering translation
             return
-            transaction.on_commit(
-                lambda: translate_model_fields_in_bulk.delay(get_model_name(model), pks)
-            )
+            transaction.on_commit(lambda: translate_model_fields_in_bulk.delay(get_model_name(model), pks))
         else:
             # NOTE: For test case run the process directly (Translator will mock the generated text)
-            transaction.on_commit(
-                lambda: translate_model_fields_in_bulk(get_model_name(model), pks)
-            )
+            transaction.on_commit(lambda: translate_model_fields_in_bulk(get_model_name(model), pks))
 
     @classmethod
     def reset_and_trigger_translation_fields(cls, instance, created=False):
@@ -167,9 +159,7 @@ class TranslatedModelSerializerMixin(serializers.ModelSerializer):
             excluded_fields,
             additional_fields,
         ) = self._get_included_excluded_fields(self.Meta.model, selected_fields=fields)
-        return [
-            f for f in fields if f not in excluded_fields
-        ] + additional_fields
+        return [f for f in fields if f not in excluded_fields] + additional_fields
 
     def get_fields(self, *args, **kwargs):
         """
@@ -199,4 +189,5 @@ class ModelSerializer(TranslatedModelSerializerMixin, serializers.ModelSerialize
     """
     Custom ModelSerializer with translaion logic (Also works for normal models)
     """
+
     pass
