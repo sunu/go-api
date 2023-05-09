@@ -36,6 +36,10 @@ RUN perl -pi -e 's/ is not -1 / != 1 /' ${AZUREROOT}blob/baseblobservice.py
 RUN perl -pi -e "s/ is '' / == '' /"    ${AZUREROOT}common/_connection.py
 RUN perl -pi -e "s/ is '' / == '' /"    ${AZUREROOT}_connection.py
 
+RUN sed -i "430 i \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ logger.warning('ooooooooooooo'); logger.warning(vars(self)); logger.warning(vars(request)); logger.warning((parser_args, vars(operation_context), expected_errors,));" ${AZUREROOT}common/storageclient.py
+
+# RUN sed -i "268 i \ \ \ \ \ \ \ \ if parser_args and parser_args[0].startswith('project-imports/'): parser_args[0] = '/api/' + parser_args[0]" ${AZUREROOT}common/storageclient.py
+
 COPY main/nginx.conf /etc/nginx/sites-available/
 RUN \
 	ln -s /etc/nginx/sites-available/nginx.conf /etc/nginx/sites-enabled; \
